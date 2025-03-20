@@ -1,4 +1,5 @@
-![image](https://github.com/user-attachments/assets/9b829f74-80bd-4ff5-ad90-0fa744edbb1e)
+![image](https://github.com/user-attachments/assets/f827a7a5-148a-4d50-8f86-6f5ecadb1b00)
+
 
 ## 🔒 Threat Event: Unauthorized Gambling Website Access & History Deletion
 
