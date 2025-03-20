@@ -53,6 +53,8 @@ John Doe (aka **labuserich**) has been **previously warned** about accessing gam
 - Started with baseline queries for **DeviceNetworkEvents, DeviceProcessEvents, and DeviceFileEvents**.
 - This provided a foundation to identify key activity related to **unauthorized gambling site access and deletion of evidence**.
 
+![image](https://github.com/user-attachments/assets/235836cd-89ca-4a78-996a-914bdfc7b908)
+
 ### **2️⃣ Identified Gambling Website Access**
 - Within the first **five minutes**, I discovered that **John had visited FanDuel and DraftKings** using the following query:
   ```kql
@@ -61,16 +63,29 @@ John Doe (aka **labuserich**) has been **previously warned** about accessing gam
   ```
 - Multiple **successful connections** confirmed access to restricted sites.
 
+![image](https://github.com/user-attachments/assets/231024a5-8d97-4a0a-95f5-cbff320801d9)
+
 ### **3️⃣ Investigated Private Browsing Mode Usage**
 - Used `DeviceProcessEvents` to check for **incognito mode usage in Firefox**.
 - While **no explicit evidence** of `-private` mode was found, **Firefox was launched at 4:38 PM**, aligning with the gambling site access.
+- 
+![image](https://github.com/user-attachments/assets/8d5cd044-cbc0-489b-bb44-c4b97f4855b5)
+
+![image](https://github.com/user-attachments/assets/48e7c805-9f05-4d86-8d4a-1c5ad7bdb280)
+
 
 > **⚠️ Note:** Even though private browsing mode was used, the logs still recorded a process creation event at the time of gambling site access.
+
+![image](https://github.com/user-attachments/assets/5aeb85e0-852d-44ca-9d08-aac74e0a0db6)
+
 
 ### **4️⃣ Detected DNS Cache Flush – Attempt to Hide Evidence**
 - **Queried `DeviceProcessEvents`** for `ipconfig /flushdns` executions.
 - **At 5:22 PM**, `ipconfig.exe /flushdns` was executed by John.
 - **This suggests an intentional attempt** to remove traces of site visits from the DNS cache.
+
+![image](https://github.com/user-attachments/assets/1073cc56-83bf-4afc-92af-73416a325c4c)
+
 
 ### **5️⃣ Investigated Browser History Deletion**
 - **Queried `DeviceFileEvents`** for `places.sqlite` deletion (Firefox history database).
@@ -81,33 +96,9 @@ John Doe (aka **labuserich**) has been **previously warned** about accessing gam
   ```
 - This suggests a **possible attempt to delete temporary browsing data**, but does not directly confirm browsing history deletion.
 
----
+![image](https://github.com/user-attachments/assets/e1e5b87b-1727-4612-bebb-14939a9904b6)
 
-## **🚨 Final Assessment**
-- **✅ Confirmed Unauthorized Gambling Website Access** – John actively accessed **FanDuel & DraftKings during work hours**.
-- **✅ Confirmed Attempt to Evade Detection** – A **DNS cache flush** was executed, likely to remove traces of site visits.
-- **❓ Possible History Deletion** – No direct deletion of `places.sqlite`, but **Firefox-related file deletions** raise concerns.
-
----
-
-## **📢 Conclusion**
-The user **"labuserich" (John Doe)** has demonstrated a **clear pattern of policy violations**:
-1. **Visiting restricted gambling websites** during work hours.
-2. **Potentially using private browsing mode** to avoid detection.
-3. **Clearing DNS logs** to remove evidence.
-4. **Deleting Firefox-related files**, potentially linked to browser history cleanup.
-
-🔍 **While no direct deletion of browsing history was found, the combined actions strongly indicate an attempt to avoid detection.**
-
----
-
-## **🔍 Recommended Next Steps**
-1. **Monitor DNS & Web Traffic** – Implement **alerts** for visits to gambling sites.
-2. **Check for Additional File Modifications** – Investigate further file deletions in **Firefox profile directories**.
-3. **Enforce Security Controls** – Consider **blocking gambling websites at the network level**.
-4. **Escalate to HR/Management** – Given **prior warnings**, further disciplinary action may be required.
-
-Would you like assistance in setting up **proactive monitoring or additional forensic analysis**? 🚀
+![image](https://github.com/user-attachments/assets/ace5d0a8-a4f9-423e-a96a-67f283baf6e6)
 
 ---
 
@@ -154,8 +145,7 @@ Would you like assistance in setting up **proactive monitoring or additional for
 ### **4️⃣ Suspicious File Deletion – Possible Browser History Wipe**
 - At **4:11 PM**, a **FileDeleted event was recorded for Firefox-related files**.
 - The deleted file path suggests **temporary browser data cleanup**, but **direct deletion of browser history (`places.sqlite`) was not found**.
-- **This strongly suggests an attempt to cover tracks, it is to be noted that DeviceNetworkEvents logged him visiting the sites until approx 4:30 pm.**
-
+- **This strongly suggests an attempt to cover tracks, it is to be noted that DeviceNetworkEvents didn't log John visiting the sites until approx 4:30 pm.**
 
 ---
 
@@ -165,9 +155,7 @@ Would you like assistance in setting up **proactive monitoring or additional for
 - **✅ Confirmed Attempt to Evade Detection** – A **DNS cache flush** was executed, likely to remove traces of website visits.
 - **❓ Possible History Deletion** – While **direct evidence of browser history deletion was not found**, the deletion of Firefox-related files suggests an attempt to erase browsing activity.
 
-
 ---
-
 
 ## 📢 **Conclusion**
 The user **"labuserich" (John Doe)** has demonstrated a **clear pattern of policy violations**:
@@ -190,10 +178,4 @@ The user **"labuserich" (John Doe)** has demonstrated a **clear pattern of polic
 4. **Escalate to HR/Management** – Given **prior warnings**, further disciplinary action may be required.
 
   
----
-
-## Response Taken
-
-TOR usage was confirmed on the endpoint rich-mde-test by the user labuserich. The device was isolated, and the user's direct manager was notified.
-
 ---
