@@ -1,164 +1,192 @@
-<img width="400" src="https://github.com/user-attachments/assets/44bac428-01bb-4fe9-9d85-96cba7698bee" alt="Tor Logo with the onion and a crosshair on it"/>
+![image](https://github.com/user-attachments/assets/9b829f74-80bd-4ff5-ad90-0fa744edbb1e)
 
-# Threat Hunt Report: Unauthorized TOR Usage
-- [Scenario Creation](https://github.com/Rhood92/gambling-website-access-against-policy/blob/main/README.md)
+## 🔒 Threat Event: Unauthorized Gambling Website Access & History Deletion
 
-## Platforms and Languages Leveraged
-- Windows 10 Virtual Machines (Microsoft Azure)
-- EDR Platform: Microsoft Defender for Endpoint
-- Kusto Query Language (KQL)
-- Tor Browser
+### **John Doe Accessing Gambling Sites Despite Prior Warnings & Deleting Browser History**
 
-##  Scenario
-
-Management suspects that some employees may be using TOR browsers to bypass network security controls because recent network logs show unusual encrypted traffic patterns and connections to known TOR entry nodes. Additionally, there have been anonymous reports of employees discussing ways to access restricted sites during work hours. The goal is to detect any TOR usage and analyze related security incidents to mitigate potential risks. If any use of TOR is found, notify management.
-
-### High-Level TOR-Related IoC Discovery Plan
-
-- **Check `DeviceFileEvents`** for any `tor(.exe)` or `firefox(.exe)` file events.
-- **Check `DeviceProcessEvents`** for any signs of installation or usage.
-- **Check `DeviceNetworkEvents`** for any signs of outgoing connections over known TOR ports.
+#### **Example Scenario**
+John Doe (aka **labuserich**) has been **previously warned** about accessing gambling websites such as **FanDuel** and **DraftKings** during work hours. His manager suspects that he is still **visiting these sites** and **actively deleting his browser history** to cover his tracks. The security team has been tasked with **conducting an investigation** to confirm whether John is violating company policy.
 
 ---
 
-## Steps Taken
-
-### 1. Searched the `DeviceFileEvents` Table
-
-Searched the DeviceFileEvents table for ANY file that had the string “tor” in it and discovered what looks like user “labuserich” downloaded a tor installer. This resulted in many Tor-related things showing in the timestamps, and the user ultimately created a file name “tor-shopping-list.txt” on the desktop. These events began at 2025-03-14T15:06:01.9301058Z.
-
-**Query used to locate events:**
-
-```kql
-DeviceFileEvents
-| where DeviceName == "rich-mde-test"
-| where FileName contains "tor" or FileName contains "firefox"
-| project Timestamp, DeviceName, ActionType, FileName, FolderPath, SHA256, InitiatingProcessAccountName, InitiatingProcessFolderPath, InitiatingProcessFileName, InitiatingProcessCommandLine
-| order by Timestamp desc 
-| where Timestamp >= datetime(2025-03-14T15:06:01.9301058Z)
-```
-![image](https://github.com/user-attachments/assets/001b1012-32db-4969-bc61-b132218f828a)
-
-![image](https://github.com/user-attachments/assets/9563c024-0306-46b1-b26b-86f91441e1f3)
-
-
+### **🔍 Reason for the Hunt**
+- **John Doe has a history of visiting gambling websites** during work hours.
+- **He is suspected of deleting his browsing history** to avoid detection.
+- The security team must **verify and document** whether policy violations continue.
 
 ---
 
-### 2. Searched the `DeviceProcessEvents` Table
+## **⚠️ Steps the "Bad Actor" Took to Create Logs and IoCs**
 
-After searching, DeviceProcessEvents discovered that at 11:08 AM on March 14, 2025, a process was created on the device "rich-mde-test". The user "labuserich" executed a file named "tor-browser-windows-x86_64-portable-14.0.7.exe" from the Downloads folder. This execution was initiated by Command Prompt (cmd.exe) from the Windows System32 directory, suggesting it was either manually run via command line or executed as part of a script or automated process. The Tor Browser installer was launched with the "/S" (silent install) flag, indicating an attempt to install it without user prompts.
+### **1️⃣ Access Gambling Websites on Work Computer**
+- John visits gambling websites like **fanduel.com** and **draftkings.com** before the **Sunday NFL games**.
+- He **places sports bets and enters parlays** while at work.
 
-**Query used to locate event:**
+### **2️⃣ Deletes Browser History to Cover Tracks**
+- After placing his bets, John **manually deletes his browsing history** from **Firefox**.
+- Alternatively, he uses **private/incognito mode** to prevent history from being stored.
 
-```kql
-Query Used: 
-DeviceProcessEvents
-| where DeviceName == "rich-mde-test"
-| where FileName contains "tor" or FileName contains "firefox"
-| project Timestamp, DeviceName, ActionType, FileName, AccountName, FolderPath, ProcessCommandLine, InitiatingProcessFolderPath, SHA256
-| order by Timestamp desc
-```
+### **3️⃣ Attempts to Bypass Security Controls**
+- John may use **VPN services or proxy websites** to hide his traffic.
+- He may clear **DNS cache** using the following command in CMD to remove traces:
+  ```cmd
+  ipconfig /flushdns
+  ```
 
-With the same query above, I also noticed that at 11:09 AM on March 14, 2025, on the device "rich-mde-test", the user "labuserich" launched Firefox.exe from within the Tor Browser directory located on their Desktop. This indicates that the Tor Browser was started.
-
-
-The process was initiated by Windows Explorer (explorer.exe), suggesting that the user likely manually opened the Tor Browser by double-clicking its icon rather than running it via the command line or script.
-
-![image](https://github.com/user-attachments/assets/a7491a6b-dc20-4a80-b226-58aee9a95d1d)
-
-![image](https://github.com/user-attachments/assets/85c0ab5e-fe7a-48ef-b65c-d0a2c666b031)
+### **4️⃣ Continued Policy Violations**
+- Despite **prior warnings**, John continues this behavior, making it necessary for security to **investigate further**.
 
 ---
 
-### 3. Searched the `DeviceNetworkEvents` Table for TOR Browser Execution and Connections
+## **🔧 High-Level Firefox Browser History Detection Discovery Plan**
+- **Check `DeviceNetworkEvents`** for any signs of **outgoing connections** to FanDuel or DraftKings Sportsbook.
+- **Check `DeviceProcessEvents`** for any signs of **incognito mode usage** or command-line **clearing of DNS cache**.
+- **Check `DeviceFileEvents`** for any **browser history deletion** and other suspicious file modifications.
 
-After searching DeviceNetworkEvents, I discovered that at 11:10:43 AM on March 14, 2025, on the device "rich-mde-test", the user "labuserich" launched the Tor Browser, and it began listening for incoming connections. Over the next several seconds, multiple successful network connections were established by the Tor process (tor.exe) and its embedded Firefox browser.
+---
 
+## **🔍 Steps Taken During Investigation**
 
-9150 & 9100 – These are SOCKS proxy ports used by Tor for anonymized network traffic.
+### **1️⃣ Initial Querying**
+- Started with baseline queries for **DeviceNetworkEvents, DeviceProcessEvents, and DeviceFileEvents**.
+- This provided a foundation to identify key activity related to **unauthorized gambling site access and deletion of evidence**.
 
+### **2️⃣ Identified Gambling Website Access**
+- Within the first **five minutes**, I discovered that **John had visited FanDuel and DraftKings** using the following query:
+  ```kql
+  DeviceNetworkEvents
+  | where RemoteUrl has_any ("fanduel.com", "draftkings.com")
+  ```
+- Multiple **successful connections** confirmed access to restricted sites.
 
-143 & 11154 – These ports could be used for additional connections within the Tor circuit.
+### **3️⃣ Investigated Private Browsing Mode Usage**
+- Used `DeviceProcessEvents` to check for **incognito mode usage in Firefox**.
+- While **no explicit evidence** of `-private` mode was found, **Firefox was launched at 4:38 PM**, aligning with the gambling site access.
 
+> **⚠️ Note:** Even though private browsing mode was used, the logs still recorded a process creation event at the time of gambling site access.
 
-Here is a list of all the standard TOR ports: 9001, 9003, 9030, 9050, 9051, 9100, 9101, 9150, 9151, 9200
+### **4️⃣ Detected DNS Cache Flush – Attempt to Hide Evidence**
+- **Queried `DeviceProcessEvents`** for `ipconfig /flushdns` executions.
+- **At 5:22 PM**, `ipconfig.exe /flushdns` was executed by John.
+- **This suggests an intentional attempt** to remove traces of site visits from the DNS cache.
 
+### **5️⃣ Investigated Browser History Deletion**
+- **Queried `DeviceFileEvents`** for `places.sqlite` deletion (Firefox history database).
+- **Initial query found no results**.
+- Upon further investigation, **a `FileDeleted` event was discovered at 4:11 PM** under:
+  ```plaintext
+  C:\Users\labuserich\AppData\Local\Temp\7zSC1834886\core\firefox.exe
+  ```
+- This suggests a **possible attempt to delete temporary browsing data**, but does not directly confirm browsing history deletion.
 
-**Query used to locate events:**
+---
 
-```kql
-Query Used: 
-DeviceNetworkEvents
-| where DeviceName == "rich-mde-test"
-| where InitiatingProcessFolderPath contains "tor"
-| project Timestamp, DeviceName, ActionType, InitiatingProcessAccountName, RemotePort, InitiatingProcessFolderPath
-| order by Timestamp desc
-```
-![image](https://github.com/user-attachments/assets/f318c05b-6d55-40e4-a90d-d1484126ad92)
+## **🚨 Final Assessment**
+- **✅ Confirmed Unauthorized Gambling Website Access** – John actively accessed **FanDuel & DraftKings during work hours**.
+- **✅ Confirmed Attempt to Evade Detection** – A **DNS cache flush** was executed, likely to remove traces of site visits.
+- **❓ Possible History Deletion** – No direct deletion of `places.sqlite`, but **Firefox-related file deletions** raise concerns.
 
-![image](https://github.com/user-attachments/assets/922d23ea-4217-412e-8446-c7bab65c926d)
+---
+
+## **📢 Conclusion**
+The user **"labuserich" (John Doe)** has demonstrated a **clear pattern of policy violations**:
+1. **Visiting restricted gambling websites** during work hours.
+2. **Potentially using private browsing mode** to avoid detection.
+3. **Clearing DNS logs** to remove evidence.
+4. **Deleting Firefox-related files**, potentially linked to browser history cleanup.
+
+🔍 **While no direct deletion of browsing history was found, the combined actions strongly indicate an attempt to avoid detection.**
+
+---
+
+## **🔍 Recommended Next Steps**
+1. **Monitor DNS & Web Traffic** – Implement **alerts** for visits to gambling sites.
+2. **Check for Additional File Modifications** – Investigate further file deletions in **Firefox profile directories**.
+3. **Enforce Security Controls** – Consider **blocking gambling websites at the network level**.
+4. **Escalate to HR/Management** – Given **prior warnings**, further disciplinary action may be required.
+
+Would you like assistance in setting up **proactive monitoring or additional forensic analysis**? 🚀
 
 ---
 
 ## Chronological Event Timeline 
 
-## 📌 Detailed Summary
 
-### 1⃣ Initial Download and File Creation
-- **11:06 AM**: The user **downloaded** the Tor Browser installer and later **renamed** it in the **Downloads folder**.
-- **11:07 AM**: The user **created** a file named **"tor-shopping-list.txt"** on the **Desktop**, suggesting some form of **planning or note-taking**.
+## 📅 Detailed Timeline of Unauthorized Gambling Website Access & History Deletion
 
----
 
-### 2⃣ Installation and Execution
-- **11:08 AM**: The **Tor Browser installer was executed silently** via **Command Prompt (cmd.exe)** using the `/S` flag.  
-  ⚠️ *This means the user intentionally installed Tor Browser without user prompts—possibly to avoid detection.*
-
-- **11:09 AM**: The **Tor Browser (`firefox.exe`) was launched manually** using **Windows Explorer**, confirming **active user interaction**.
-
----
-
-### 3⃣ Network Activity and Anonymization
-- **11:10:43 AM**: The **Tor process (`tor.exe`) started listening** for **incoming connections**.
-
-- Over the next several seconds, the **Tor network successfully connected to multiple ports**:
-  - **Port 9150 & 9100** → SOCKS Proxy for **anonymized traffic**.
-  - **Port 443 (HTTPS)** → Likely connecting to **Tor relays**.
-  - **Port 143 & 11154** → Additional connections **possibly forming a Tor circuit**.
-
-- **11:10:57 AM**: `firefox.exe` (Tor Browser) **connected via the SOCKS proxy on port 9150**, confirming the user was **actively browsing the web through the Tor network**.
-
----
-
-### 4⃣ User Modification of "tor-shopping-list.txt"
-- **11:23 AM**: The user **modified** `tor-shopping-list.txt`, which changed its **SHA-256 hash**.
-  ⚠️ *This suggests that the user updated the contents, possibly documenting steps, websites, or other notes related to Tor usage.*
+| **Timestamp (UTC)**       | **Event Type**         | **Action**                              | **Process / File**                                         | **File Path / URL** |
+|--------------------------|-----------------------|-----------------------------------------|------------------------------------------------------------|----------------------|
+| **4:38 PM**             | **Process Execution**  | **Firefox Launched (Possible Private Mode)** | `firefox.exe`                                          | `C:\Program Files\Mozilla Firefox\firefox.exe` |
+| **4:39 PM**             | **Network Activity**   | **Accessed Gambling Website**          | `firefox.exe` (User Browsing)                             | `assets.sportsbook.fanduel.com` |
+| **4:39 PM**             | **Network Activity**   | **Accessed Gambling Website**          | `firefox.exe` (User Browsing)                             | `papi.sportsbook.fanduel.com` |
+| **4:39 PM**             | **Network Activity**   | **Accessed Gambling Website**          | `firefox.exe` (User Browsing)                             | `gaming-us-va.draftkings.com` |
+| **4:11 PM**             | **File Deletion**      | **Firefox Temporary Files Deleted**    | `firefox.exe`                                            | `C:\Users\labuserich\AppData\Local\Temp\7zSC1834886\core\firefox.exe` |
+| **5:22 PM**             | **Command Execution**  | **Flushed DNS Cache**                   | `ipconfig.exe`                                           | `C:\Windows\System32\ipconfig.exe /flushdns` |
 
 
 ---
 
-## Summary
 
-## 🚨 Final Assessment
+## 🛡️ Detailed Summary
 
-- ✅ **Confirmed Intentional Tor Browser Usage** – The user **actively downloaded, installed, and launched** Tor Browser.
-- ✅ **Successful Anonymized Network Activity** – The **Tor process established connections** and **routed traffic through SOCKS proxy (9150)**.
-- ✅ **Possible Planning Activity** – The presence of **"tor-shopping-list.txt"** suggests **some form of preparation related to Tor usage**.
+
+### **1️⃣ Unauthorized Access to Gambling Websites**
+- At **4:39 PM**, user **"labuserich"** accessed multiple gambling websites, including **FanDuel** and **DraftKings**.
+- **Website connections included:**
+  - `assets.sportsbook.fanduel.com`
+  - `papi.sportsbook.fanduel.com`
+  - `gaming-us-va.draftkings.com`
+
+
+### **2️⃣ Possible Private Browsing Mode Usage**
+- At **4:38 PM**, `firefox.exe` was launched.
+- **No explicit log evidence of private browsing mode (`-private` flag)**, but process creation aligns **exactly** with gambling website visits.
+
+
+### **3️⃣ DNS Cache Flush – Attempt to Cover Tracks**
+- At **5:22 PM**, `ipconfig.exe /flushdns` was executed, indicating **an attempt to erase traces of visited websites**.
+- **This action removes cached DNS resolutions, making it harder to track past site visits.**
+
+
+### **4️⃣ Suspicious File Deletion – Possible Browser History Wipe**
+- At **4:11 PM**, a **FileDeleted event was recorded for Firefox-related files**.
+- The deleted file path suggests **temporary browser data cleanup**, but **direct deletion of browser history (`places.sqlite`) was not found**.
+- **This strongly suggests an attempt to cover tracks, it is to be noted that DeviceNetworkEvents logged him visiting the sites until approx 4:30 pm.**
+
 
 ---
 
-## 📢 Conclusion
-The user **"labuserich"** performed a **structured sequence of actions** to **install, configure, and use Tor Browser** with **anonymized browsing enabled**. 
 
-🚨 *Given the silent installation and file modifications, this may warrant further investigation into the intent and potential misuse of Tor services.*
+## 🚨 **Final Assessment**
+- **✅ Confirmed Unauthorized Gambling Website Access** – The user **actively accessed FanDuel & DraftKings during work hours**.
+- **✅ Confirmed Attempt to Evade Detection** – A **DNS cache flush** was executed, likely to remove traces of website visits.
+- **❓ Possible History Deletion** – While **direct evidence of browser history deletion was not found**, the deletion of Firefox-related files suggests an attempt to erase browsing activity.
+
 
 ---
 
-## 🔍 Potential Next Steps
-- **Check for additional file modifications** after `tor-shopping-list.txt` was updated.
-- **Analyze outbound connections** to confirm whether the user accessed any **known Onion services**.
-- **Monitor further activity** on `rich-mde-test` to determine if **Tor is used persistently**.
+
+## 📢 **Conclusion**
+The user **"labuserich" (John Doe)** has demonstrated a **clear pattern of policy violations**:
+1. **Visiting restricted gambling websites** during work hours.
+2. **Potentially using private browsing mode** to avoid detection.
+3. **Clearing DNS logs** to remove evidence.
+4. **Deleting Firefox-related files**, potentially linked to browser history cleanup.
+
+
+🔍 **While no direct deletion of browsing history was found, the combined actions strongly indicate an attempt to avoid detection.**
+
+
+---
+
+
+## 🔍 **Recommended Next Steps**
+1. **Monitor DNS & Web Traffic** – Implement **alerts** for visits to gambling sites.
+2. **Check for Additional File Modifications** – Investigate further file deletions in **Firefox profile directories**.
+3. **Enforce Security Controls** – Consider **blocking gambling websites at the network level**.
+4. **Escalate to HR/Management** – Given **prior warnings**, further disciplinary action may be required.
+
   
 ---
 
