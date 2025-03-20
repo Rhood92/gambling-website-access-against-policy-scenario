@@ -2,6 +2,8 @@
 
 ## 🔒 Threat Event: Unauthorized Gambling Website Access & History Deletion
 
+- [Scenario Creation](https://github.com/Rhood92/gambling-website-access-against-policy)
+
 ### **John Doe Accessing Gambling Sites Despite Prior Warnings & Deleting Browser History**
 
 #### **Example Scenario**
